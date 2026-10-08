@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="nl">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Lab 3 — Aggregates · DDD workshop PXL 2026</title>
+	<link rel="icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAADYlAB52JQA89iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2ZQACNiUAHrYlAD22ZUA/9iUAP/YlAD/2JQA/9iUAP/ZlAD/2ZUA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9mUAADgmQAGzYsAhcyKAPzTkAD/2JQA/9iUAP/XlAD/z40A/82LAP/WkwD/2JQA/9iUAP/YlAD/2JQA/9iUAP8AAAAAaTwCAGE3AnNrPgL/rXMB/9uWAP/ZlQD/05AA/4RSAf91RgL/yIgA/9qWAP/YlAD/2JQA/9iUAP/YlAD/AAAAAFkwAgBaMQJsWC8C2pVgAdPGhgD80o8A/9OQAP+EUgH/c0UC/7d6Af/IiAD/1pMA/9iUAP/YlAD/2JQA/wAAAABaMQMAWjEDDFgwAxddNAKZZjsC/7V5Af7blgD/0I4A/8KDAP9zRQL/dUYC/8+NAP/algD/2JQA/9iUAP8AAAAAAAAAAFoxAgBXLwIAWjECdVkwAsaaYwHOvn8A/tOQAP/QjgD/hVIB/4BPAv+0eAH/woMA/9eTAP/YlAD/AAAAAAAAAABbMgQAWzIBAFsyAwRYLwMLWzICrmU6Av+8fgD+2ZUA/9aSAP/CgwD/ZzwC/3hIAv/SjwD/2JQA/wAAAAAAAAAAWjECAFkxAgBaMQIvWjECUloxApJbMQKquHsBnNWSAPS3ewH/qW8B/4VSAf+UXgH/1JAA/9iUAP8AAAAAAAAAAFoxAgBaMQIAWjECmFoxAv9aMQJSm2QAAP63AAbDhAF4az4C+Gw/Av/KiQD/15MA/9iUAP/YlAD/AAAAAFoxAgBaMQIzWjECaVoxAoRaMQKWWjECL10yBAJZMAJPWzICbmk9AqaWYAH00Y8A/9mUAP/YlAD/2JQA/wAAAABaMQIAWjECf1oxAv9aMQJnWjECAFsxAwBbMQMMWjECx1oxAuptQAIu3JcAeNiUAPbYlAD/2JQA/9iUAP8AAAAAWjECAFoxAj9aMQKAWjECM1oxAgBbMQMAWzEDBloxAmJaMQJ0Vy8CE/asAAXYlAB62JQA9tiUAP/YlAD/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADYlAAA2ZQAB9iUAHrYlAD22JQA/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANiUAADZlAAG2JQAetiUAPQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2ZQAANmVAAnYlAB5AAAAAAAAAACAAAAAwAAAAMAAAADAAAAA8AAAAPAAAADwAAAA8QAAAMAAAADGAAAAxgAAAP/wAAD/+AAA//wAAA==" type="image/x-icon" />
+	<link rel="stylesheet" href="lab.css" />
+</head>
+<body>
+	<header class="lab-hero">
+		<div>
+			<p class="kicker">Dag 1 · oefening 3 van 5</p>
+			<h1>Lab 3 — Aggregates</h1>
+		</div>
+	</header>
+	<main>
+		<section class="meta">
+			<div><p class="label">Starter</p><p><code>Dag 1/DDD.Domain</code> — verder dan <a href="lab02-dag1-value-objects-entities.html">lab 2</a></p></div>
+		</section>
+		<h2>Opdracht</h2>
+		<ol class="steps">
+			<li>Creëer aggregates en begin met <strong>User</strong> of <strong>Song</strong>.</li>
+			<li>Implementeer per aggregate commands en events.</li>
+		</ol>
+		<h2>Suggesties voor domain commands</h2>
+		<p>Kies er drie bij de aggregate waarmee je start.</p>
+		<div class="suggest">
+			<div>
+				<h3>User</h3>
+				<ul>
+					<li><code>RegisterUser</code> — username mag niet leeg zijn</li>
+					<li><code>ChangeUsername</code> — de nieuwe username mag niet leeg zijn</li>
+					<li><code>DeactivateUser</code> — een al gedeactiveerde user kan niet opnieuw gedeactiveerd worden</li>
+				</ul>
+			</div>
+			<div>
+				<h3>Song</h3>
+				<ul>
+					<li><code>AddSong</code> — title en duration zijn verplicht</li>
+					<li><code>ChangeTitle</code> — title mag niet leeg zijn</li>
+					<li><code>RemoveSong</code> — een al verwijderde song kan niet nog eens verwijderd worden</li>
+				</ul>
+			</div>
+		</div>
+		<div class="kc-acceptance">
+			<p class="label">Klaar wanneer</p>
+			<p>een command de state mutert via events, en een overtreden domain rule een exception gooit.</p>
+		</div>
+		<nav class="lab-nav"><a href="lab02-dag1-value-objects-entities.html">← Lab 2</a><a href="lab04-dag1-services-factories.html">Lab 4 →</a></nav>
+	</main>
+</body>
+</html>

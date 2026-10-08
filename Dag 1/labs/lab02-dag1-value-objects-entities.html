@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="nl">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Lab 2 — Value objects en entities · DDD workshop PXL 2026</title>
+	<link rel="icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAADYlAB52JQA89iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2ZQACNiUAHrYlAD22ZUA/9iUAP/YlAD/2JQA/9iUAP/ZlAD/2ZUA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9mUAADgmQAGzYsAhcyKAPzTkAD/2JQA/9iUAP/XlAD/z40A/82LAP/WkwD/2JQA/9iUAP/YlAD/2JQA/9iUAP8AAAAAaTwCAGE3AnNrPgL/rXMB/9uWAP/ZlQD/05AA/4RSAf91RgL/yIgA/9qWAP/YlAD/2JQA/9iUAP/YlAD/AAAAAFkwAgBaMQJsWC8C2pVgAdPGhgD80o8A/9OQAP+EUgH/c0UC/7d6Af/IiAD/1pMA/9iUAP/YlAD/2JQA/wAAAABaMQMAWjEDDFgwAxddNAKZZjsC/7V5Af7blgD/0I4A/8KDAP9zRQL/dUYC/8+NAP/algD/2JQA/9iUAP8AAAAAAAAAAFoxAgBXLwIAWjECdVkwAsaaYwHOvn8A/tOQAP/QjgD/hVIB/4BPAv+0eAH/woMA/9eTAP/YlAD/AAAAAAAAAABbMgQAWzIBAFsyAwRYLwMLWzICrmU6Av+8fgD+2ZUA/9aSAP/CgwD/ZzwC/3hIAv/SjwD/2JQA/wAAAAAAAAAAWjECAFkxAgBaMQIvWjECUloxApJbMQKquHsBnNWSAPS3ewH/qW8B/4VSAf+UXgH/1JAA/9iUAP8AAAAAAAAAAFoxAgBaMQIAWjECmFoxAv9aMQJSm2QAAP63AAbDhAF4az4C+Gw/Av/KiQD/15MA/9iUAP/YlAD/AAAAAFoxAgBaMQIzWjECaVoxAoRaMQKWWjECL10yBAJZMAJPWzICbmk9AqaWYAH00Y8A/9mUAP/YlAD/2JQA/wAAAABaMQIAWjECf1oxAv9aMQJnWjECAFsxAwBbMQMMWjECx1oxAuptQAIu3JcAeNiUAPbYlAD/2JQA/9iUAP8AAAAAWjECAFoxAj9aMQKAWjECM1oxAgBbMQMAWzEDBloxAmJaMQJ0Vy8CE/asAAXYlAB62JQA9tiUAP/YlAD/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADYlAAA2ZQAB9iUAHrYlAD22JQA/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANiUAADZlAAG2JQAetiUAPQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2ZQAANmVAAnYlAB5AAAAAAAAAACAAAAAwAAAAMAAAADAAAAA8AAAAPAAAADwAAAA8QAAAMAAAADGAAAAxgAAAP/wAAD/+AAA//wAAA==" type="image/x-icon" />
+	<link rel="stylesheet" href="lab.css" />
+</head>
+<body>
+	<header class="lab-hero">
+		<div>
+			<p class="kicker">Dag 1 · oefening 2 van 5</p>
+			<h1>Lab 2 — Value objects en entities</h1>
+		</div>
+	</header>
+	<main>
+		<section class="meta">
+			<div><p class="label">Starter</p><p><code>Dag 1/DDD.Domain</code> — verder dan <a href="lab01-dag1-modellen.html">lab 1</a></p></div><div><p class="label">Tijd</p><p class="time">30 min</p></div>
+		</section>
+		<h2>Opdracht</h2>
+		<ol class="steps">
+			<li>Pas de modellen van oefening 1 aan en gebruik value objects en entities.</li>
+			<li>Voeg de nodige validatie toe op de value objects.</li>
+			<li>Maak entities aan. Wat merk je?</li>
+		</ol>
+		<div class="note">
+			<p>Vergelijk met je buren: <strong>1-2-4-All | 10 min</strong>. Let op:</p>
+			<ul>
+				<li>Eigenschapnamen (ubiquitous language!)</li>
+				<li>Wat gebeurt er als je 2 objecten vergelijkt? Compare by reference of compare by value?</li>
+			</ul>
+		</div>
+		<div class="kc-acceptance">
+			<p class="label">Klaar wanneer</p>
+			<p>ongeldige waarden in een value object worden geweigerd in de constructor, en twee inhoudelijk gelijke value objects als gelijk worden beschouwd (compare by value).</p>
+		</div>
+		<nav class="lab-nav"><a href="lab01-dag1-modellen.html">← Lab 1</a><a href="lab03-dag1-aggregates.html">Lab 3 →</a></nav>
+	</main>
+</body>
+</html>

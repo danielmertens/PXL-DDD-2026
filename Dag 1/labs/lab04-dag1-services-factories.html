@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="nl">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Lab 4 — Domain services en factories · DDD workshop PXL 2026</title>
+	<link rel="icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAABILAAASCwAAAAAAAAAAAADYlAB52JQA89iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2ZQACNiUAHrYlAD22ZUA/9iUAP/YlAD/2JQA/9iUAP/ZlAD/2ZUA/9iUAP/YlAD/2JQA/9iUAP/YlAD/2JQA/9mUAADgmQAGzYsAhcyKAPzTkAD/2JQA/9iUAP/XlAD/z40A/82LAP/WkwD/2JQA/9iUAP/YlAD/2JQA/9iUAP8AAAAAaTwCAGE3AnNrPgL/rXMB/9uWAP/ZlQD/05AA/4RSAf91RgL/yIgA/9qWAP/YlAD/2JQA/9iUAP/YlAD/AAAAAFkwAgBaMQJsWC8C2pVgAdPGhgD80o8A/9OQAP+EUgH/c0UC/7d6Af/IiAD/1pMA/9iUAP/YlAD/2JQA/wAAAABaMQMAWjEDDFgwAxddNAKZZjsC/7V5Af7blgD/0I4A/8KDAP9zRQL/dUYC/8+NAP/algD/2JQA/9iUAP8AAAAAAAAAAFoxAgBXLwIAWjECdVkwAsaaYwHOvn8A/tOQAP/QjgD/hVIB/4BPAv+0eAH/woMA/9eTAP/YlAD/AAAAAAAAAABbMgQAWzIBAFsyAwRYLwMLWzICrmU6Av+8fgD+2ZUA/9aSAP/CgwD/ZzwC/3hIAv/SjwD/2JQA/wAAAAAAAAAAWjECAFkxAgBaMQIvWjECUloxApJbMQKquHsBnNWSAPS3ewH/qW8B/4VSAf+UXgH/1JAA/9iUAP8AAAAAAAAAAFoxAgBaMQIAWjECmFoxAv9aMQJSm2QAAP63AAbDhAF4az4C+Gw/Av/KiQD/15MA/9iUAP/YlAD/AAAAAFoxAgBaMQIzWjECaVoxAoRaMQKWWjECL10yBAJZMAJPWzICbmk9AqaWYAH00Y8A/9mUAP/YlAD/2JQA/wAAAABaMQIAWjECf1oxAv9aMQJnWjECAFsxAwBbMQMMWjECx1oxAuptQAIu3JcAeNiUAPbYlAD/2JQA/9iUAP8AAAAAWjECAFoxAj9aMQKAWjECM1oxAgBbMQMAWzEDBloxAmJaMQJ0Vy8CE/asAAXYlAB62JQA9tiUAP/YlAD/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADYlAAA2ZQAB9iUAHrYlAD22JQA/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANiUAADZlAAG2JQAetiUAPQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA2ZQAANmVAAnYlAB5AAAAAAAAAACAAAAAwAAAAMAAAADAAAAA8AAAAPAAAADwAAAA8QAAAMAAAADGAAAAxgAAAP/wAAD/+AAA//wAAA==" type="image/x-icon" />
+	<link rel="stylesheet" href="lab.css" />
+</head>
+<body>
+	<header class="lab-hero">
+		<div>
+			<p class="kicker">Dag 1 · oefening 4 van 5</p>
+			<h1>Lab 4 — Domain services en factories</h1>
+		</div>
+	</header>
+	<main>
+		<section class="meta">
+			<div><p class="label">Starter</p><p><code>Dag 1/DDD.Domain</code> — verder dan <a href="lab03-dag1-aggregates.html">lab 3</a></p></div>
+		</section>
+		<h2>Opdracht</h2>
+		<ol class="steps">
+			<li>Voeg domain services toe aan je aggregates of value objects.</li>
+			<li>Voeg een factory toe voor een value object.</li>
+			<li>Wat merk je op?</li>
+		</ol>
+		<h2>Suggesties</h2>
+		<p>Kies er één of meer uit elke kolom.</p>
+		<div class="suggest">
+			<div>
+				<h3>Domain services</h3>
+				<ul>
+					<li><code>UsernameAvailabilityService</code> — is de username nog niet in gebruik door een andere user?</li>
+					<li><code>DuplicateSongService</code> — bestaat er al een song met dezelfde title?</li>
+					<li><code>CanPlaySongService</code> — mag deze user deze song afspelen?</li>
+				</ul>
+			</div>
+			<div>
+				<h3>Factories voor een value object</h3>
+				<ul>
+					<li><code>UsernameFactory</code> — trimt en valideert de ruwe invoer</li>
+					<li><code>DurationFactory</code> — maakt een duration uit tekst zoals <code>3:45</code></li>
+					<li><code>TitleFactory</code> — trimt en bewaakt de maximale lengte</li>
+				</ul>
+			</div>
+		</div>
+		<div class="kc-acceptance">
+			<p class="label">Klaar wanneer</p>
+			<p>een domain service een regel afhandelt die niet in de aggregate thuishoort, en een value object via een factory gecreëerd wordt.</p>
+		</div>
+		<nav class="lab-nav"><a href="lab03-dag1-aggregates.html">← Lab 3</a><a href="lab05-dag1-onion-architecture.html">Lab 5 →</a></nav>
+	</main>
+</body>
+</html>
