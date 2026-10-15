@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="nl">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Lab 8 — Messaging · DDD workshop PXL 2026</title>
+	<link rel="icon" href="../img/theme/favicon.ico" type="image/x-icon" />
+	<link rel="stylesheet" href="lab.css" />
+</head>
+<body>
+	<header class="lab-hero">
+		<div>
+			<p class="kicker">Dag 2 · oefening 8 van 9</p>
+			<h1>Lab 8 — Messaging</h1>
+		</div>
+	</header>
+	<main>
+		<section class="meta">
+			<div><p class="label">Starter</p><p><code>Dag 2/Starter</code> — verder dan <a href="lab07-dag2-persistence.html">lab 7</a></p></div>
+			<div><p class="label">Oplossing</p><p><code>Dag 2/Result</code> krijg je op het einde van de dag</p></div>
+		</section>
+		<h2>Opdracht</h2>
+		<ol class="steps">
+			<li>Implementeer een side effect in je code
+				<ul>
+					<li>Verstuur een command/notification</li>
+					<li>Behandel het event</li>
+					<li>Verstuur via de outbox: aggregate en bericht in één transactie</li>
+				</ul>
+			</li>
+		</ol>
+		<h2>Hoe past messaging in je architectuur?</h2>
+		<ul>
+			<li>De application layer kent enkel een interface, bv. <code>IMessagePublisher</code>, en een <code>INotification</code></li>
+			<li>De implementatie (MassTransit op RabbitMQ) zit in <code>Ports</code>, net als de handler (consumer) en de outbox</li>
+			<li>De service publiceert <strong>vóór</strong> de commit: via de outbox bewaart die commit aggregate én bericht in één transactie</li>
+		</ul>
+		<h2>Stappen</h2>
+		<ol class="steps">
+			<li>Definieer een notification, bv. <code>AlbumUpdatedNotification</code> met de <code>AlbumReference</code></li>
+			<li>Publiceer ze in <code>AlbumService</code> vóór <code>Commit</code>, zodat aggregate en bericht in dezelfde transactie zitten</li>
+			<li>Schrijf in <code>Ports</code> een consumer die de notification afhandelt (bv. loggen of een aanroep naar een service)</li>
+			<li>Registreer de bus in DI en geef de consumers mee</li>
+			<li>Zet de outbox aan: package <code>MassTransit.EntityFrameworkCore</code>, <code>AddEntityFrameworkOutbox&lt;CatalogueContext&gt;</code> met <code>UsePostgres()</code> en <code>UseBusOutbox()</code>, de outbox-entities in <code>OnModelCreating</code> en een migratie</li>
+		</ol>
+		<h2>RabbitMQ opzetten</h2>
+		<p>Start RabbitMQ met het commando uit <code>docker commands.txt</code>; het beheerscherm staat op <code>localhost:15672</code> (<code>guest</code> / <code>guest</code>, enkel voor development).</p>
+		<p>De versies staan centraal in <code>Directory.Packages.props</code>; in het project komt enkel de referentie, zonder versie:</p>
+		<pre><code>&lt;!-- HarmonyTunes.Ports.csproj --&gt;
+&lt;PackageReference Include="MassTransit.RabbitMQ" /&gt;
+&lt;PackageReference Include="MassTransit.EntityFrameworkCore" /&gt;</code></pre>
+		<h2>De poort in de application layer</h2>
+		<pre><code>// HarmonyTunes.Catalogue/Shared/Application/Interfaces
+public interface INotification
+{
+}
+
+public interface IMessagePublisher
+{
+    Task Publish&lt;T&gt;(T notification)
+        where T : INotification;
+}</code></pre>
+		<h2>De bus registreren</h2>
+		<pre><code>// Program.cs
+builder.Services.AddMassTransit(configure =&gt;
+{
+    configure.AddEntityFrameworkOutbox&lt;CatalogueContext&gt;(outbox =&gt;
+    {
+        outbox.UsePostgres();      // lock-SQL voor Postgres (default: SQL Server)
+        outbox.UseBusOutbox();     // IPublishEndpoint schrijft naar de outbox
+        outbox.QueryDelay = TimeSpan.FromSeconds(1);
+    });
+
+    configure.AddConsumers(typeof(Program).Assembly);   // alle IConsumer&lt;T&gt; in Ports
+
+    configure.UsingRabbitMq((context, rabbit) =&gt;
+    {
+        rabbit.Host("localhost", "/", host =&gt;
+        {
+            host.Username("guest");
+            host.Password("guest");
+        });
+
+        rabbit.ReceiveEndpoint("HarmonyTunes.Catalogue.In", endpoint =&gt;
+        {
+            endpoint.UseMessageRetry(retry =&gt; retry.Interval(3, TimeSpan.FromMilliseconds(200)));
+            endpoint.ConfigureConsumers(context);
+        });
+    });
+});
+
+// jouw implementatie van IMessagePublisher, op de scoped IPublishEndpoint
+builder.Services.AddScoped&lt;IMessagePublisher, MessagePublisher&gt;();</code></pre>
+		<p>De outbox-tabellen komen in je eigen <code>CatalogueContext</code>, gevolgd door een migratie:</p>
+		<pre><code>// CatalogueContext.OnModelCreating
+modelBuilder.AddInboxStateEntity();
+modelBuilder.AddOutboxMessageEntity();
+modelBuilder.AddOutboxStateEntity();</code></pre>
+		<pre><code>dotnet ef migrations add AddOutbox --project HarmonyTunes.Ports
+dotnet ef database update --project HarmonyTunes.Ports</code></pre>
+		<h2>De consumer</h2>
+		<p><code>AddConsumers</code> vindt elke klasse die <code>IConsumer&lt;T&gt;</code> implementeert:</p>
+		<pre><code>// HarmonyTunes.Ports/Catalogue/Adapters/Messaging/Consumers/AlbumUpdatedNotificationHandler.cs
+public class AlbumUpdatedNotificationHandler : IConsumer&lt;AlbumUpdatedNotification&gt;
+{
+    public Task Consume(ConsumeContext&lt;AlbumUpdatedNotification&gt; context)
+    {
+        // context.Message is je notification; begin met loggen
+        throw new NotImplementedException();
+    }
+}</code></pre>
+		<h2>Let op</h2>
+		<ul>
+			<li>Asynchrone bezorging kan duplicaten geven: maak je handler <strong>idempotent</strong></li>
+			<li>Asynchroon is niet transactioneel; voor een proces over meerdere stappen heb je een saga met compensatiestappen nodig</li>
+			<li>Enkel de scoped <code>IPublishEndpoint</code> gaat via de outbox; <code>IBus.Publish</code> niet</li>
+			<li>Publish zonder commit faalt stil: het bericht komt nooit in <code>OutboxMessage</code></li>
+		</ul>
+		<h2>Controleer</h2>
+		<div class="note">
+			<p>Maak of update een album via de api en zie in de logs of in RabbitMQ dat het bericht aankomt en verwerkt wordt. Stop daarna RabbitMQ (<code>docker stop harmonytunes-rabbitmq</code>) en maak een album aan: het bericht wacht in <code>"Catalogue"."OutboxMessage"</code> en wordt verwerkt zodra RabbitMQ terug draait.</p>
+		</div>
+		<div class="kc-acceptance">
+			<p class="label">Klaar wanneer</p>
+			<p>bij het opslaan van je aggregate een bericht via de outbox naar buiten gaat en een handler dat effectief ontvangt en verwerkt, ook als RabbitMQ even plat lag.</p>
+		</div>
+		<nav class="lab-nav"><a href="lab07-dag2-persistence.html">← Lab 7</a><a href="lab09-dag2-projections.html">Lab 9 →</a></nav>
+	</main>
+</body>
+</html>

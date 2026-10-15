@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="nl">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Lab 6 — Projectstructuur, application layer en api/console · DDD workshop PXL 2026</title>
+	<link rel="icon" href="../img/theme/favicon.ico" type="image/x-icon" />
+	<link rel="stylesheet" href="lab.css" />
+</head>
+<body>
+	<header class="lab-hero">
+		<div>
+			<p class="kicker">Dag 2 · oefening 6 van 9</p>
+			<h1>Lab 6 — Projectstructuur, application layer en api/console</h1>
+		</div>
+	</header>
+	<main>
+		<section class="meta">
+			<div><p class="label">Starter</p><p><code>Dag 2/Starter</code></p></div>
+			<div><p class="label">Tijd</p><p class="time">15 min</p></div>
+			<div><p class="label">Oplossing</p><p><code>Dag 2/Result</code> krijg je op het einde van de dag</p></div>
+		</section>
+		<div class="note lime">
+			<p><strong>Verdieping van oefening 5 van dag 1</strong> (dag 1 → oefening 5) — een in-memory repository volstaat; echte opslag volgt in oefening 7.</p>
+		</div>
+		<h2>Opdracht</h2>
+		<ol class="steps">
+			<li>Structureer per aggregate: <code>Domain</code> en <code>Application</code></li>
+			<li>Werk de application service <code>AlbumService</code> uit (stub staat klaar)</li>
+			<li>Koppel de api-endpoints via DI aan de service</li>
+			<li>Maak van buiten het domein een album aan en wijzig de beschrijving</li>
+		</ol>
+		<h2>Wat is er al, wat niet?</h2>
+		<p>De starter bevat enkel de domeinlaag: de <code>AlbumAggregate</code> met <code>Create</code>, <code>ChangeDescription</code>, <code>ChangeBackgroundImage</code>, <code>ChangePublicationYear</code> en <code>Like</code>, de value objects en de events. Je krijgt wel al een stub <code>AlbumService</code> (met <code>IAlbumService</code>) die in <code>Program.cs</code> geregistreerd is. De twee endpoints in <code>Program.cs</code> doen nog niets: die koppel je zelf.</p>
+		<h2>Herhaling: onion architecture</h2>
+		<ul>
+			<li>Domain logica staat centraal</li>
+			<li>Afhankelijkheid is naar binnen toe; het domein kent de infrastructuur niet</li>
+			<li>Alles is losgekoppeld via interfaces, beschreven in de application- en domain layer</li>
+		</ul>
+		<h2>Voorgestelde structuur</h2>
+		<p>Per aggregate één map, met daarin <code>Domain</code> en <code>Application</code>:</p>
+		<pre><code>HarmonyTunes.Catalogue/
+└── Album/
+    ├── Domain/              AlbumAggregate, AlbumState, events, value objects
+    └── Application/
+        ├── Interfaces/      IAlbumService, IAlbumRepository
+        └── AlbumService.cs
+HarmonyTunes.Ports/
+├── Catalogue/Adapters/      implementaties van je interfaces (InMemoryAlbumRepository)
+└── Program.cs               composition root: DI, endpoints, dto's</code></pre>
+		<p>De namespace volgt de map, bv. <code>HarmonyTunes.Ports.Catalogue.Adapters.Database.Album</code>.</p>
+		<h2>De application service</h2>
+		<p>Een application service is use case oriented, bevat <strong>geen</strong> domeinlogica en beschrijft een proces. Typisch:</p>
+		<ol class="steps">
+			<li>Validatie van de input</li>
+			<li>Ophalen van de aggregate (via de repository-interface)</li>
+			<li>Uitvoeren van het domain command op de aggregate (<code>Create</code>, <code>ChangeDescription</code>)</li>
+			<li>Opslaan van de aggregate</li>
+			<li>Notificaties verzenden van belangrijke events (pas in oefening 8)</li>
+		</ol>
+		<p>Begin met de poort: een interface in <code>Application</code>. De implementatie komt later in <code>Ports</code>.</p>
+		<pre><code>// HarmonyTunes.Catalogue/Album/Application/Interfaces/IAlbumRepository.cs
+public interface IAlbumRepository
+{
+    AlbumReference GetNextIdentity();
+    void Add(AlbumAggregate album);
+    void Update(AlbumAggregate album);
+    Task&lt;AlbumAggregate&gt; Fetch(AlbumReference id);
+    Task Commit();
+}</code></pre>
+		<p>De service krijgt de repository via de constructor:</p>
+		<pre><code>public class AlbumService : IAlbumService
+{
+    private readonly IAlbumRepository _albumRepository;
+
+    public AlbumService(IAlbumRepository albumRepository)
+    {
+        _albumRepository = albumRepository;
+    }
+
+    // CreateAlbum en ChangeDescription: vul de TODO's uit de stub in
+}</code></pre>
+		<div class="note">
+			<p>Optioneel: een generieke basisklasse <code>ApplicationService&lt;TAggregate, TState, TId&gt;</code> met <code>Add</code> en <code>Update</code> haalt de herhaling uit je services zodra je meer dan één aggregate hebt.</p>
+		</div>
+		<h2>Een in-memory repository</h2>
+		<p>Tot oefening 7 bewaar je de aggregates in het geheugen. Bewaar de state en de version, niet de aggregate zelf:</p>
+		<pre><code>// HarmonyTunes.Ports/Catalogue/Adapters/Database/Album/InMemoryAlbumRepository.cs
+public class InMemoryAlbumRepository : IAlbumRepository
+{
+    private readonly Dictionary&lt;Guid, (AlbumState State, int Version)&gt; _albums = new();
+
+    // Fetch: zoek state en version op en bouw de aggregate terug op
+    //        met new AlbumAggregate(state, id, version); die constructor bestaat al
+}</code></pre>
+		<pre><code>// Program.cs: singleton, anders is je dictionary bij elke request leeg
+builder.Services.AddSingleton&lt;IAlbumRepository, InMemoryAlbumRepository&gt;();
+builder.Services.AddScoped&lt;IAlbumService, AlbumService&gt;();</code></pre>
+		<h2>De api als buitenste laag</h2>
+		<ul>
+			<li>De dto's (<code>CreateAlbumDto</code>, <code>ChangeAlbumDescriptionDto</code>) blijven in <code>Ports</code>; het domein kent ze niet</li>
+			<li>In het endpoint zet je de dto om naar domeintypes (<code>AlbumName</code>, <code>AlbumDescription</code>) en roep je <code>IAlbumService</code> aan</li>
+			<li>Geef een verwijzing terug (de <code>AlbumReference</code>) zodat de client de aggregate kan wijzigen</li>
+			<li>Ontwikkelmodus: test via Swagger</li>
+		</ul>
+		<p>Een minimal api-endpoint krijgt geregistreerde services gewoon als parameter:</p>
+		<pre><code>app.MapPost("/api/albums/create", async (CreateAlbumDto dto, IAlbumService albumService) =&gt;
+{
+    // dto → AlbumName, de service aanroepen, de Key van de AlbumReference teruggeven
+});</code></pre>
+		<h2>Controleer</h2>
+		<div class="note">
+			<p>Alle projectreferenties wijzen naar binnen: <code>Ports</code> → <code>Catalogue</code> → <code>Domain.Core</code>, nooit omgekeerd. Er zit geen domeinlogica in <code>AlbumService</code> of in de endpoints.</p>
+		</div>
+		<div class="kc-acceptance">
+			<p class="label">Klaar wanneer</p>
+			<p>je via de api/console een album kan aanmaken en de beschrijving kan wijzigen, met het domein als enige drager van domeinlogica.</p>
+		</div>
+		<nav class="lab-nav"><a href="lab05-dag1-onion-architecture.html">← Lab 5</a><a href="lab07-dag2-persistence.html">Lab 7 →</a></nav>
+	</main>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="nl">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Lab 7 — Persistentie · DDD workshop PXL 2026</title>
+	<link rel="icon" href="../img/theme/favicon.ico" type="image/x-icon" />
+	<link rel="stylesheet" href="lab.css" />
+</head>
+<body>
+	<header class="lab-hero">
+		<div>
+			<p class="kicker">Dag 2 · oefening 7 van 9</p>
+			<h1>Lab 7 — Persistentie</h1>
+		</div>
+	</header>
+	<main>
+		<section class="meta">
+			<div><p class="label">Starter</p><p><code>Dag 2/Starter</code> — verder dan <a href="lab06-dag2-projectstructuur-app.html">lab 6</a></p></div>
+			<div><p class="label">Oplossing</p><p><code>Dag 2/Result</code> krijg je op het einde van de dag</p></div>
+		</section>
+		<h2>Opdracht</h2>
+		<ol class="steps">
+			<li>Implementeer de database</li>
+			<li>Sla je state op in de database</li>
+			<li>Kies zelf voor event sourced of state stored</li>
+		</ol>
+		<h2>Kies je aanpak</h2>
+		<div class="suggest">
+			<div>
+				<h3>State stored</h3>
+				<p>Je bewaart de huidige state van de aggregate. Voeg een <strong>id</strong> en een <strong>version</strong> toe; de version dient voor optimistic concurrency. Houd je domain state vrij van persistentiedetails.</p>
+			</div>
+			<div>
+				<h3>Event sourced</h3>
+				<p>Je bewaart enkel de events en bouwt de aggregate bij elke fetch op door ze opnieuw af te spelen (replay). Zorg dat je events backwards compatible blijven.</p>
+			</div>
+		</div>
+		<p>Beide aanpakken implementeren dezelfde <code>IAlbumRepository</code> uit oefening 6.</p>
+		<h2>De repository</h2>
+		<p>Implementeer de repository-interface uit je application layer in <code>Ports</code> (bv. <code>AlbumRepository</code>). De service blijft ongewijzigd:</p>
+		<ul>
+			<li><code>Add</code>, <code>Update</code>, <code>Fetch</code> en <code>Commit</code>; de service roept <code>Commit</code> pas op nadat het domain command uitgevoerd is</li>
+			<li><code>GetNextIdentity</code> genereert de nieuwe <code>AlbumReference</code></li>
+			<li><code>Update</code> doet niets als de aggregate geen events heeft</li>
+		</ul>
+		<h2>De database opzetten</h2>
+		<p>Start PostgreSQL met de commando's uit <code>docker commands.txt</code> (in <code>Dag 2/Starter</code>). De connection string staat in <code>appsettings.json</code>:</p>
+		<pre><code>Host=localhost;Database=harmonytunes_dev;Username=harmonytunes;Password=harmonytunes123</code></pre>
+		<ul>
+			<li>Voeg een <code>DbContext</code> toe en registreer die in DI</li>
+			<li>Maak een EF Core migration en pas ze toe op de database</li>
+		</ul>
+		<p>De EF Core- en Npgsql-packages staan al in <code>HarmonyTunes.Ports.csproj</code>. Een vertrekpunt voor de context:</p>
+		<pre><code>// HarmonyTunes.Ports/Catalogue/Adapters/Database/CatalogueContext.cs
+public class CatalogueContext : DbContext
+{
+    // state stored; bij event sourced: je event-tabel
+    public DbSet&lt;AlbumState&gt; Albums { get; set; }
+
+    public CatalogueContext(DbContextOptions&lt;CatalogueContext&gt; options)
+        : base(options)
+    {
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasDefaultSchema("Catalogue");
+        modelBuilder.ApplyConfiguration(new AlbumConfiguration());
+    }
+}</code></pre>
+		<pre><code>// Program.cs: de in-memory singleton uit oefening 6 vervalt;
+// de repository wordt scoped, net als de DbContext
+builder.Services.AddDbContext&lt;CatalogueContext&gt;(options =&gt;
+    options.UseNpgsql(builder.Configuration.GetConnectionString("default")));
+builder.Services.AddScoped&lt;IAlbumRepository, AlbumRepository&gt;();</code></pre>
+		<pre><code># vanuit Dag 2/Starter; eenmalig: dotnet tool install -g dotnet-ef
+dotnet ef migrations add InitialCreate --project HarmonyTunes.Ports --output-dir Catalogue/Adapters/Database/Migrations
+dotnet ef database update --project HarmonyTunes.Ports</code></pre>
+		<h2>State stored: id en version buiten je state</h2>
+		<p>Met <strong>shadow properties</strong> krijgt de tabel een id- en een version-kolom zonder dat <code>AlbumState</code> ze kent:</p>
+		<pre><code>// HarmonyTunes.Ports/Catalogue/Adapters/Database/Album/AlbumConfiguration.cs
+public class AlbumConfiguration : IEntityTypeConfiguration&lt;AlbumState&gt;
+{
+    public void Configure(EntityTypeBuilder&lt;AlbumState&gt; builder)
+    {
+        builder.Property&lt;Guid&gt;("AlbumId").ValueGeneratedNever();
+        builder.HasKey("AlbumId");
+        builder.Property&lt;int&gt;("Version").IsConcurrencyToken();
+
+        // value object ↔ kolom; doe hetzelfde voor Description,
+        // BackgroundImageUrl, PublicationYear en Likes
+        builder.Property(p =&gt; p.Name)
+            .HasConversion(name =&gt; name.Value, text =&gt; new AlbumName(text));
+    }
+}</code></pre>
+		<p><code>Status</code> is een enum: die mapt EF zelf. In de repository lees en schrijf je de shadow properties zo:</p>
+		<pre><code>_context.Entry(state).Property("AlbumId").CurrentValue = album.Id.Key;
+var version = _context.Entry(state).Property&lt;int&gt;("Version").CurrentValue;
+
+_context.Albums.Where(a =&gt; EF.Property&lt;Guid&gt;(a, "AlbumId") == id.Key)</code></pre>
+		<p>Bij <code>Fetch</code> bouw je de aggregate op met <code>new AlbumAggregate(state, id, version)</code>; die constructor bestaat al.</p>
+		<h2>Event sourced: een tabel met events</h2>
+		<p>Eén rij per event; een unieke index op stream en volgnummer is je optimistic concurrency:</p>
+		<pre><code>public class EventEntity
+{
+    public Guid Id { get; set; }
+    public Guid AggregateId { get; set; }
+    public int Version { get; set; }                          // volgnummer in de stream
+    public string MessageType { get; set; } = string.Empty;   // evt.GetType().Name
+    public string EventData { get; set; } = string.Empty;     // het event als json
+}
+
+// in de configuratie
+builder.HasIndex(e =&gt; new { e.AggregateId, e.Version }).IsUnique();</code></pre>
+		<pre><code>// opslaan: geef het runtime-type mee, anders serialiseer je enkel IDomainEvent
+row.EventData = JsonSerializer.Serialize(evt, evt.GetType());
+
+// inlezen: het type vind je terug via MessageType
+// Type.GetType verwacht "&lt;namespace&gt;.&lt;klasse&gt;, &lt;assembly&gt;"
+var eventType = Type.GetType(
+    $"HarmonyTunes.Catalogue.Album.Domain.Events.{row.MessageType}, HarmonyTunes.Catalogue")!;
+var domainEvent = (IDomainEvent)JsonSerializer.Deserialize(row.EventData, eventType)!;</code></pre>
+		<p>Voor de replay heeft <code>AggregateRoot</code> een extra constructor nodig, en <code>AlbumAggregate</code> een die ernaar doorgeeft:</p>
+		<pre><code>// HarmonyTunes.Domain.Core/AggregateRoot.cs
+protected AggregateRoot(TId id, IEnumerable&lt;IDomainEvent&gt; events)
+{
+    // nieuwe state, elk event toepassen met Mutate, Version = aantal events
+}</code></pre>
+		<div class="note">
+			<p>Let op: System.Text.Json leest een value object in via zijn constructor en koppelt de parameters op naam aan de properties. Daarom heet de parameter in de starter <code>value</code>, net als de property <code>Value</code>: <code>public AlbumName(string value)</code>. Doe dat ook in je eigen value objects, anders faalt <code>Fetch</code> met een <code>InvalidOperationException</code>.</p>
+		</div>
+		<h2>Controleer</h2>
+		<div class="note">
+			<p>Maak een aggregate aan, stop de applicatie, start ze opnieuw en laad dezelfde aggregate via de api. Alle gegevens moeten er nog zijn.</p>
+		</div>
+		<div class="kc-acceptance">
+			<p class="label">Klaar wanneer</p>
+			<p>na een herstart van je applicatie de aggregate opnieuw kan geladen worden uit je keuze (state of event stream).</p>
+		</div>
+		<nav class="lab-nav"><a href="lab06-dag2-projectstructuur-app.html">← Lab 6</a><a href="lab08-dag2-messaging.html">Lab 8 →</a></nav>
+	</main>
+</body>
+</html>

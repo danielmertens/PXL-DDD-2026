@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="nl">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Lab 9 — Projections · DDD workshop PXL 2026</title>
+	<link rel="icon" href="../img/theme/favicon.ico" type="image/x-icon" />
+	<link rel="stylesheet" href="lab.css" />
+</head>
+<body>
+	<header class="lab-hero">
+		<div>
+			<p class="kicker">Dag 2 · oefening 9 van 9</p>
+			<h1>Lab 9 — Projections</h1>
+		</div>
+	</header>
+	<main>
+		<section class="meta">
+			<div><p class="label">Starter</p><p><code>Dag 2/Starter</code> — verder dan <a href="lab08-dag2-messaging.html">lab 8</a></p></div>
+			<div><p class="label">Oplossing</p><p><code>Dag 2/Result</code> krijg je op het einde van de dag</p></div>
+		</section>
+		<h2>Opdracht</h2>
+		<ol class="steps">
+			<li>Implementeer een projection service</li>
+			<li>Query data via projections i.p.v. aggregates</li>
+		</ol>
+		<h2>Waarom projections?</h2>
+		<ul>
+			<li>Je splitst gedrag (commands op aggregates) van queries (<strong>CQRS</strong>)</li>
+			<li>Een projection is een model dat speciaal voor het lezen gebouwd wordt, los van je aggregate</li>
+			<li>Handig wanneer je met event sourcing werkt: een aggregate laden om te lezen is dan duur</li>
+		</ul>
+		<h2>Stappen</h2>
+		<ol class="steps">
+			<li>Ontwerp een read-model, bv. <code>AlbumOverviewProjection</code> (id, albumnaam, publicatiejaar)</li>
+			<li>Schrijf een projection service met een methode per gebeurtenis, bv. <code>OnAlbumUpdated</code></li>
+			<li>Laat je handler uit oefening 8 die service aanroepen: zo wordt de projection bijgewerkt bij elke wijziging</li>
+			<li>Voeg een endpoint toe dat de projection leest, niet de aggregate</li>
+		</ol>
+		<h2>Het read-model en zijn poorten</h2>
+		<p>Een platte klasse, zonder value objects of gedrag:</p>
+		<pre><code>// HarmonyTunes.Catalogue/Album/Projection/Models/AlbumOverviewProjection.cs
+public class AlbumOverviewProjection
+{
+    public Guid Id { get; set; }                            // = AlbumReference.Key
+    public string AlbumName { get; set; } = string.Empty;
+    // ... enkel wat je lees-scherm nodig heeft
+}</code></pre>
+		<pre><code>// HarmonyTunes.Catalogue/Album/Projection/Interfaces
+public interface IAlbumProjectionsService
+{
+    Task OnAlbumUpdated(AlbumReference albumReference);
+}
+
+public interface IAlbumProjectionsRepository
+{
+    void AddOrUpdateProjection(AlbumOverviewProjection projection);
+    Task Commit();
+}</code></pre>
+		<p>Voor het lezen voeg je zelf een methode of een aparte query-interface toe.</p>
+		<h2>Opslag en DI</h2>
+		<pre><code>// CatalogueContext; de key is Id, volgens conventie
+public DbSet&lt;AlbumOverviewProjection&gt; AlbumOverviewProjection { get; set; }
+
+// Program.cs
+builder.Services.AddScoped&lt;IAlbumProjectionsService, AlbumProjectionService&gt;();
+builder.Services.AddScoped&lt;IAlbumProjectionsRepository, AlbumProjectionsRepository&gt;();</code></pre>
+		<pre><code>dotnet ef migrations add AddProjections --project HarmonyTunes.Ports
+dotnet ef database update --project HarmonyTunes.Ports</code></pre>
+		<h2>De handler en het lees-endpoint</h2>
+		<p>MassTransit maakt per bericht een DI-scope, dus je consumer krijgt scoped services gewoon via de constructor:</p>
+		<pre><code>public class AlbumUpdatedNotificationHandler : IConsumer&lt;AlbumUpdatedNotification&gt;
+{
+    private readonly IAlbumProjectionsService _projections;
+
+    public AlbumUpdatedNotificationHandler(IAlbumProjectionsService projections)
+    {
+        _projections = projections;
+    }
+
+    // Consume: roep _projections aan met de AlbumReference uit context.Message
+}</code></pre>
+		<pre><code>app.MapGet("/api/albums/overview", async (/* jouw lees-interface */) =&gt;
+{
+    // lees AlbumOverviewProjection; geen IAlbumRepository, geen aggregate
+});</code></pre>
+		<h2>Let op</h2>
+		<ul>
+			<li>De projection opbouwen mag uit de aggregate (via de repository); het lees-endpoint raakt de aggregate niet aan</li>
+			<li>Upsert, geen insert: bestaat de rij al, overschrijf ze dan (<code>_context.Entry(bestaande).CurrentValues.SetValues(nieuwe)</code>); zo blijft je handler idempotent</li>
+			<li>Create en update kort na elkaar geven twee berichten die tegelijk verwerkt kunnen worden: beide vinden nog geen rij en doen een insert, de tweede botst op de primary key. De <code>UseMessageRetry</code> uit oefening 8 probeert opnieuw en dan wordt het een update</li>
+		</ul>
+		<h2>Controleer</h2>
+		<div class="note">
+			<p>Een lees-endpoint geeft de projection terug zonder dat de aggregate geladen wordt. Na een update via de api klopt de projection (na een korte vertraging, eventual consistency).</p>
+		</div>
+		<div class="kc-acceptance">
+			<p class="label">Klaar wanneer</p>
+			<p>je query-flow via de projection loopt en je aggregate niet meer aangesproken wordt voor lezen.</p>
+		</div>
+		<nav class="lab-nav"><a href="lab08-dag2-messaging.html">← Lab 8</a><a href="../dag2.html#/d2-oefening4">Terug naar de slides →</a></nav>
+	</main>
+</body>
+</html>
