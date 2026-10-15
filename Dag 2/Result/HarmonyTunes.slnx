@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="HarmonyTunes.Catalogue/HarmonyTunes.Catalogue.csproj" />
+  <Project Path="HarmonyTunes.Domain.Core/HarmonyTunes.Domain.Core.csproj" />
+  <Project Path="HarmonyTunes.Ports/HarmonyTunes.Ports.csproj" />
+</Solution>
