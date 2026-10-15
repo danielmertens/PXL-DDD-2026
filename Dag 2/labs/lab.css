@@ -1,0 +1,38 @@
+/* Lab instruction pages — uses the kc corporate theme tokens (../css/kc-theme.css :root) */
+@import url(../css/kc-theme.css);
+html { font-size: 18px; }
+body { margin: 0; background: #fff; color: var(--is-heading); font-family: PxGroteskRegular, Arial, sans-serif; line-height: 1.5; }
+.lab-hero { background: var(--is-navy) url(../img/theme/lab-background.png) center / cover no-repeat; color: #fff; padding: 2.2rem 1.5rem 2.6rem; border-bottom: 8px solid var(--is-lime); }
+.lab-hero > div, main { max-width: 52rem; margin: 0 auto; }
+.lab-hero .kicker { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.85; margin: 0 0 0.4rem; }
+.lab-hero h1 { font-family: PxGroteskBold, Arial, sans-serif; font-weight: normal; font-size: 2.6rem; line-height: 1.15; margin: 0; color: #fff; }
+main { padding: 1.5rem 1.5rem 3rem; }
+.meta { display: flex; flex-wrap: wrap; gap: 0.8rem; margin: 0 0 1.8rem; }
+.meta > div { flex: 1 1 14rem; border-top: 4px solid var(--is-blue); background: #f3f7fa; padding: 0.6rem 0.9rem; border-radius: 0 0 8px 8px; }
+.meta .label, h2.label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--is-link-blue); margin: 0 0 0.2rem; font-family: PxGroteskRegular, Arial, sans-serif; }
+.meta .time { font-family: PxGroteskBold, Arial, sans-serif; font-size: 1.6rem; line-height: 1.2; }
+h2 { font-family: PxGroteskBold, Arial, sans-serif; font-weight: normal; font-size: 1.5rem; margin: 2rem 0 0.6rem; color: var(--is-heading); }
+ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0; }
+ol.steps > li { counter-increment: s; position: relative; padding: 0.5rem 0 0.5rem 3rem; }
+ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0.4rem; width: 2rem; height: 2rem; border-radius: 50%; background: var(--is-navy); color: #fff; font-family: PxGroteskBold, Arial, sans-serif; text-align: center; line-height: 2rem; }
+ul { padding-left: 1.3rem; } li::marker { color: var(--is-marker); }
+code { font-family: consolas, menlo, monospace; background: #efefef; padding: 0 0.3em; border-radius: 3px; font-size: 0.92em; }
+a { color: var(--is-link-blue); } a:hover { color: #096993; }
+.note { border-left: 6px solid var(--is-blue); background: #f3f7fa; padding: 0.6rem 1rem; margin: 1.2rem 0; border-radius: 0 8px 8px 0; }
+.note.lime { border-left-color: var(--is-lime); }
+.kc-acceptance { background: var(--is-navy); color: #fff; border-top: 6px solid var(--is-lime); border-radius: 12px; padding: 1rem 1.3rem; margin-top: 2rem; }
+.kc-acceptance .label { color: var(--is-lime-500); }
+.kc-acceptance p { margin: 0; }
+nav.lab-nav { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #d5dde3; font-size: 0.95rem; }
+nav.lab-nav a { text-decoration: none; border: 2px solid var(--is-navy); color: var(--is-navy); border-radius: 2em; padding: 0.3em 1em; }
+nav.lab-nav a:hover { background: var(--is-navy); color: #fff; }
+@media print { .lab-hero { background: var(--is-navy); -webkit-print-color-adjust: exact; print-color-adjust: exact; } nav.lab-nav { display: none; } }
+
+.suggest { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1rem; margin-top: 0.8rem; }
+.suggest > div { border-top: 4px solid var(--is-lime); background: #f3f7fa; padding: 0.4rem 1rem 0.6rem; border-radius: 0 0 8px 8px; }
+.suggest h3 { font-family: PxGroteskBold, Arial, sans-serif; font-weight: normal; font-size: 1.2rem; margin: 0.4rem 0; }
+.suggest.three { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.suggest p { margin: 0.3rem 0; }
+
+pre { background: #f3f7fa; border-left: 6px solid var(--is-blue); border-radius: 0 8px 8px 0; padding: 0.8rem 1rem; overflow-x: auto; margin: 1rem 0; }
+pre code { background: none; padding: 0; }
